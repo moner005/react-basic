@@ -1,13 +1,14 @@
 import { useEffect, useState } from 'react'
-import Footer from './components/Footer.jsx'
-import Header from './components/Header.jsx'
-import Pagination from './components/Pagination.jsx'
-import ProductGrid from './components/ProductGrid.jsx'
+import Footer from './components/Footer.tsx'
+import Header from './components/Header.tsx'
+import Pagination from './components/Pagination.tsx'
+import ProductGrid from './components/ProductGrid.tsx'
+import type { Product, ProductResponse } from './types.ts'
 
 const PAGE_SIZE = 8
 
 function App() {
-  const [products, setProducts] = useState([])
+  const [products, setProducts] = useState<Product[]>([])
   const [total, setTotal] = useState(0)
   const [page, setPage] = useState(1)
   const [loading, setLoading] = useState(true)
@@ -35,14 +36,18 @@ function App() {
           throw new Error(`The products could not be loaded (${response.status}).`)
         }
 
-        const data = await response.json()
+        const data: ProductResponse = await response.json()
         if (active) {
           setProducts(Array.isArray(data.products) ? data.products : [])
           setTotal(Number(data.total) || 0)
         }
       } catch (requestError) {
-        if (active && requestError.name !== 'AbortError') {
-          setError(requestError.message || 'Something went wrong while loading products.')
+        const wasAborted = requestError instanceof DOMException && requestError.name === 'AbortError'
+        if (active && !wasAborted) {
+          const message = requestError instanceof Error
+            ? requestError.message
+            : 'Something went wrong while loading products.'
+          setError(message)
         }
       } finally {
         if (active) setLoading(false)
@@ -57,7 +62,7 @@ function App() {
     }
   }, [page, retryCount])
 
-  function choosePage(nextPage) {
+  function choosePage(nextPage: number) {
     if (nextPage >= 1 && nextPage <= totalPages && nextPage !== page) {
       setLoading(true)
       setError('')

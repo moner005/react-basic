@@ -1,4 +1,10 @@
-function ProductCard({ product }) {
+import type { Product } from '../types.ts'
+
+interface ProductCardProps {
+  product: Product
+}
+
+function ProductCard({ product }: ProductCardProps) {
   const image = product.thumbnail || product.images?.[0]
   const price = new Intl.NumberFormat('en-US', {
     style: 'currency',
